@@ -1,0 +1,59 @@
+
+@keyframes fade-in {
+    0% {
+      opacity: 0;
+    }
+    100% {
+      opacity: 1;
+    }
+  }
+  
+  @keyframes scale-up {
+    0% {
+      transform: scale(0.95);
+    }
+    100% {
+      transform: scale(1);
+    }
+  }
+  
+  .animate-fade-in {
+    animation: fade-in 0.5s ease-out;
+  }
+  
+  .animate-scale-up {
+    animation: scale-up 0.3s ease-in-out;
+  }
+  
+
+  body {
+    background-color: #f8fafc;
+    font-family: 'Inter', sans-serif;
+  }
+  
+  button {
+    transition: transform 0.2s ease-in-out;
+  }
+  
+  button:hover {
+    transform: scale(1.1);
+  }
+  
+  input {
+    transition: all 0.3s ease;
+  }
+  
+  input:focus {
+    border-color: #4c51bf;
+    box-shadow: 0 0 0 2px rgba(66, 153, 225, 0.5);
+  }
+  
+  select {
+    transition: all 0.3s ease;
+  }
+  
+  select:focus {
+    border-color: #4c51bf;
+    box-shadow: 0 0 0 2px rgba(66, 153, 225, 0.5);
+  }
+  

@@ -1,5 +1,4 @@
-/* eslint-disable react/prop-types */
-import {HiOutlineStar, HiStar} from "react-icons/hi2";
+import { HiOutlineStar, HiStar } from "react-icons/hi2";
 
 const CurrencyDropdown = ({
   currencies,
@@ -9,51 +8,89 @@ const CurrencyDropdown = ({
   handleFavorite,
   title = "",
 }) => {
+  
   const isFavorite = (curr) => favorites.includes(curr);
 
-  return (
-    <div>
-      <label
-        htmlFor={title}
-        className="block text-sm font-medium text-gray-700"
-      >
-        {title}
-      </label>
+  if (!currencies || currencies.length === 0) {
+    return <div>Loading currencies...</div>; 
+  }
 
-      <div className="mt-1 relative">
-        <select
-          value={currency}
-          onChange={(e) => setCurrency(e.target.value)}
-          className="w-full p-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-        >
-          {favorites.map((currency) => {
+  return (
+    <div className="p-4 bg-gray-800 rounded-lg shadow-lg">
+  {/* Title */}
+  <label
+    htmlFor={title}
+    className="block text-sm font-semibold text-green-400 "
+  >
+    {title}
+  </label>
+
+  {/* Input Section */}
+  <div className="mt-2 flex items-center gap-2">
+    {/* Dropdown */}
+    <div className="relative w-full">
+      <select
+        value={currency}
+        onChange={(e) => setCurrency(e.target.value)}
+        className="w-full py-2 px-3 bg-gray-700 text-white border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 transition-all"
+      >
+        {/* Favorites */}
+        {favorites.map((favCode) => {
+          const favCurrency = currencies.find(
+            (curr) => curr.code === favCode
+          );
+          if (favCurrency) {
             return (
-              <option className="bg-gray-200" value={currency} key={currency}>
-                {currency}
+              <option
+                className="bg-gray-700 text-white"
+                value={favCurrency.code}
+                key={favCurrency.code}
+              >
+                {favCurrency.name} ({favCurrency.code})
+              </option>
+            );
+          }
+          return null;
+        })}
+
+        {/* Divider */}
+        <option disabled className="bg-gray-600">
+          ----------
+        </option>
+
+        {/* Other Currencies */}
+        {currencies
+          .filter((currencyObj) => !favorites.includes(currencyObj.code))
+          .map((currencyObj) => {
+            return (
+              <option
+                value={currencyObj.code}
+                key={currencyObj.code}
+                className="bg-gray-700 text-white"
+              >
+                {currencyObj.name} ({currencyObj.code})
               </option>
             );
           })}
-          <hr />
-          {currencies
-            .filter((c) => !favorites.includes(c))
-            .map((currency) => {
-              return (
-                <option value={currency} key={currency}>
-                  {currency}
-                </option>
-              );
-            })}
-        </select>
-
-        <button
-          onClick={() => handleFavorite(currency)}
-          className="absolute inset-y-0 right-0 pr-5 flex items-center text-sm leading-5"
-        >
-          {isFavorite(currency) ? <HiStar /> : <HiOutlineStar />}
-        </button>
-      </div>
+      </select>
     </div>
+
+    {/* Star Button */}
+    <button
+      onClick={() => handleFavorite(currency)}
+      className="p-2 bg-gray-700 rounded-full hover:bg-green-500 transition-colors focus:outline-none"
+    >
+      {isFavorite(currency) ? (
+        <HiStar className="text-yellow-400 text-xl" />
+      ) : (
+        <HiOutlineStar className="text-gray-400 text-xl" />
+      )}
+    </button>
+  </div>
+</div>
+
   );
+
 };
 
 export default CurrencyDropdown;

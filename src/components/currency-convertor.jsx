@@ -1,7 +1,10 @@
-import {useEffect} from "react";
-import {useState} from "react";
+import { useEffect, useState } from "react";
+import axios from "axios";
 import CurrencyDropdown from "./dropdown";
-import {HiArrowsRightLeft} from "react-icons/hi2";
+import { HiArrowsUpDown } from "react-icons/hi2";
+import currencySymbolMap from 'currency-symbol-map';
+
+import "../style/style.css"
 
 const CurrencyConverter = () => {
   const [currencies, setCurrencies] = useState([]);
@@ -14,15 +17,16 @@ const CurrencyConverter = () => {
     JSON.parse(localStorage.getItem("favorites")) || ["INR", "EUR"]
   );
 
-  // Currencies -> https://api.frankfurter.app/currencies
   const fetchCurrencies = async () => {
     try {
-      const res = await fetch("https://api.frankfurter.app/currencies");
-      const data = await res.json();
-
-      setCurrencies(Object.keys(data));
+      const res = await axios.get("https://api.frankfurter.app/currencies");
+      const currencyNames = Object.entries(res.data).map(([code, name]) => ({
+        code,
+        name
+      }));
+      setCurrencies(currencyNames);
     } catch (error) {
-      console.error("Error Fetching", error);
+      console.error("Error Fetching Currencies", error);
     }
   };
 
@@ -30,21 +34,32 @@ const CurrencyConverter = () => {
     fetchCurrencies();
   }, []);
 
-  console.log(currencies);
+  useEffect(() => {
+    setConvertedAmount(null);
+  }, [fromCurrency, toCurrency, amount]);
 
-  // Conversion -> https://api.frankfurter.app/latest?amount=1&from=USD&to=INR
   const convertCurrency = async () => {
-    if (!amount) return;
+    if (amount <= 0 || isNaN(amount)) {
+      alert("Please enter a valid amount greater than 0.");
+      return;
+    }
+
     setConverting(true);
     try {
-      const res = await fetch(
-        `https://api.frankfurter.app/latest?amount=${amount}&from=${fromCurrency}&to=${toCurrency}`
+      const res = await axios.get(`https://api.frankfurter.app/latest`, {
+        params: {
+          amount,
+          from: fromCurrency,
+          to: toCurrency,
+        },
+      });
+      const symbol = currencySymbolMap(toCurrency);
+      setConvertedAmount(
+        `${symbol}${res.data.rates[toCurrency].toFixed(2)} ${toCurrency}`
       );
-      const data = await res.json();
-
-      setConvertedAmount(data.rates[toCurrency] + " " + toCurrency);
     } catch (error) {
-      console.error("Error Fetching", error);
+      alert("Failed to fetch conversion rate. Please try again later.");
+      console.error("Error Fetching Conversion Rate:", error);
     } finally {
       setConverting(false);
     }
@@ -55,8 +70,11 @@ const CurrencyConverter = () => {
 
     if (favorites.includes(currency)) {
       updatedFavorites = updatedFavorites.filter((fav) => fav !== currency);
-    } else {
+    } else if (favorites.length < 5) {
       updatedFavorites.push(currency);
+    } else {
+      alert("You can only have up to 5 favorite currencies.");
+      return;
     }
 
     setFavorites(updatedFavorites);
@@ -69,12 +87,32 @@ const CurrencyConverter = () => {
   };
 
   return (
-    <div className="max-w-xl mx-auto my-10 p-5 bg-white rounded-lg shadow-md">
-      <h2 className="mb-5 text-2xl font-semibold text-gray-700">
-        Currency Converter
-      </h2>
+    <div className="max-w-md mx-auto my-10 p-8 bg-gray-900 rounded-lg shadow-2xl">
+  <h2 className="mb-4 text-2xl font-semibold text-white text-center">
+    CURRENCY CONVERTER
+  </h2>
 
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 items-end">
+  {/* Swap Section */}
+  <div className="p-6 bg-gray-900 rounded-lg shadow-inner">
+    <div className="flex justify-between items-center mb-8">
+      <label
+        htmlFor="amount"
+        className="text-lg font-semibold text-gray-400"
+      >
+        Amount to Convert:
+      </label>
+      <input
+        value={amount}
+        onChange={(e) => setAmount(e.target.value)}
+        type="number"
+        className="w-36 p-2 text-white bg-gray-700 border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 transition-all"
+      />
+    </div>
+
+    {/* Updated Grid Layout */}
+    <div className="grid  gap-3 items-center">
+      {/* From Dropdown */}
+      <div className="col-span-1">
         <CurrencyDropdown
           favorites={favorites}
           currencies={currencies}
@@ -83,56 +121,52 @@ const CurrencyConverter = () => {
           setCurrency={setFromCurrency}
           handleFavorite={handleFavorite}
         />
-        {/* swap currency button */}
-        <div className="flex justify-center -mb-5 sm:mb-0">
-          <button
-            onClick={swapCurrencies}
-            className="p-2 bg-gray-200 rounded-full cursor-pointer hover:bg-gray-300"
-          >
-            <HiArrowsRightLeft className="text-xl text-gray-700" />
-          </button>
-        </div>
-        <CurrencyDropdown
-          favorites={favorites}
-          currencies={currencies}
-          currency={toCurrency}
-          setCurrency={setToCurrency}
-          title="To:"
-          handleFavorite={handleFavorite}
-        />
       </div>
 
-      <div className="mt-4">
-        <label
-          htmlFor="amount"
-          className="block text-sm font-medium text-gray-700"
-        >
-          Amount:
-        </label>
-        <input
-          value={amount}
-          onChange={(e) => setAmount(e.target.value)}
-          type="number"
-          className="w-full p-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 mt-1"
-        />
-      </div>
-
-      <div className="flex justify-end mt-6">
+      {/* Swap Button */}
+      <div className="col-span-1 flex justify-center">
         <button
-          onClick={convertCurrency}
-          className={`px-5 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2
-          ${converting ? "animate-pulse" : ""}`}
+          onClick={swapCurrencies}
+          className="p-3 bg-green-500 rounded-full hover:bg-green-600 transition-all duration-300"
         >
-          Convert
+          <HiArrowsUpDown className="text-2xl text-white" />
         </button>
       </div>
 
-      {convertedAmount && (
-        <div className="mt-4 text-lg font-medium text-right text-green-600">
-          Converted Amount: {convertedAmount}
-        </div>
-      )}
+      {/* To Dropdown */}
+      <div className="col-span-1">
+        <CurrencyDropdown
+          favorites={favorites}
+          currencies={currencies}
+          title="To:"
+          currency={toCurrency}
+          setCurrency={setToCurrency}
+          handleFavorite={handleFavorite}
+        />
+      </div>
     </div>
+  </div>
+
+  {/* Convert Button */}
+  <div className="flex justify-center mt-4">
+    <button
+      onClick={convertCurrency}
+      className={`w-full py-3 text-lg font-semibold bg-green-600 text-white rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-all duration-300 ease-in-out 
+      ${converting ? "animate-pulse" : ""}`}
+    >
+      Convert
+    </button>
+  </div>
+
+  {/* Converted Amount */}
+  {convertedAmount && (
+    <div className="mt-6 text-lg font-semibold text-center text-green-500 opacity-90 animate-fade-in">
+      Converted Amount: {convertedAmount}
+    </div>
+  )}
+</div>
+
+
   );
 };
 
