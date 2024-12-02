@@ -52,18 +52,18 @@ Ensure you have the following installed on your local machine:
 
 ### API Integration
 This project uses a currency exchange API to fetch real-time exchange rates. You can integrate any reliable API service, such as:
-- **ExchangeRate API**
+- **https://api.frankfurter.app/latest**
 
 Ensure to add your API key to the configuration file in the backend or frontend as required.
 
 ---
 
 ## Project Structure
-- **src:
-      **components**: Contains React components for the application, such as CurrencyDropdown, App, etc.
-      **styles**: Contains CSS/SCSS files or Tailwind configuration for styling the app.
-      **app_js**: Main React component where the currency converter logic is implemented.
-      **index_js**: Entry point for React, rendering the app into the DOM.
+- **src**:
+      - **components**: Contains React components for the application, such as CurrencyDropdown, App, etc.
+      - **styles**: Contains CSS/SCSS files or Tailwind configuration for styling the app.
+      - **app_js**: Main React component where the currency converter logic is implemented.
+      - **index_js**: Entry point for React, rendering the app into the DOM.
 
 ---
 
